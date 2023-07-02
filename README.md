@@ -1,11 +1,36 @@
-# win-reg
+# windows-reg
 
-Access Windows registry with REG commandline tool
+Access Windows registry with REG command line tool
 
 ## Getting Started
 
 ```sh
-yarn add win-reg
+yarn add windows-reg
+```
+
+### To Read a Registry Key Value
+
+```typescript
+import { query } from 'windows-reg';
+
+console.log(
+  await query(
+    'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run',
+    'OneDrive',
+  ),
+);
+```
+
+The example output would be
+
+```javascript
+{
+  hive: 'HKEY_CURRENT_USER',
+  key: '\\Software\\Microsoft\\Windows\\CurrentVersion\\Run',
+  valueKey: 'OneDrive',
+  valueType: 'REG_SZ',
+  value: '"C:\\Program Files\\Microsoft OneDrive\\OneDrive.exe" /background'
+}
 ```
 
 ## Developing
