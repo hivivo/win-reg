@@ -1,0 +1,20 @@
+{
+  "image": "mcr.microsoft.com/vscode/devcontainers/typescript-node:18",
+  "hostRequirements": {
+    "cpus": 1
+  },
+  "containerEnv": {
+    "NODE_AUTH_TOKEN": ""
+  },
+  "waitFor": "onCreateCommand",
+  "updateContentCommand": "yarn",
+  "postCreateCommand": "",
+  "postAttachCommand": "",
+  "customizations": {
+    "codespaces": {
+      "openFiles": ["README.md"]
+    }
+  },
+  "portsAttributes": {},
+  "forwardPorts": []
+}

@@ -1,0 +1,75 @@
+name: Main CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - name: Install Node.js and Yarn
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Lint the code
+        run: yarn lint
+
+      - name: Build release artifact
+        run: yarn build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-artifact
+          path: |
+            dist
+            package.json
+
+  release:
+    needs: build
+    # when merge to main and not a fork
+    if: github.repository == 'hivivo/win-reg' && github.event_name == 'push'
+    permissions:
+      # for version bump
+      contents: write
+      # # for package release
+      # packages: write
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - name: Install Node.js and Yarn
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: yarn
+
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: release-artifact
+
+      - name: Bump version
+        uses: 'phips28/gh-action-bump-version@master'
+        with:
+          tag-prefix: 'v'
+
+      # TODO: uncomment it when npm is wired
+      # - name: Release
+      #   run: yarn publish
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
