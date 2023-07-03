@@ -19,7 +19,6 @@ jobs:
         with:
           node-version: 18
           cache: yarn
-          registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
         run: yarn
@@ -37,17 +36,13 @@ jobs:
           path: |
             dist
             package.json
-      
-      - name: Test publish
-        run: yarn publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   release:
     needs: build
     # when merge to main and not a fork
     if: github.repository == 'hivivo/windows-reg' && github.event_name == 'push'
     permissions:
+      # for auto version bump
       contents: write
     runs-on: ubuntu-latest
 
@@ -60,6 +55,7 @@ jobs:
         with:
           node-version: 18
           cache: yarn
+          # required by yarn publish
           registry-url: "https://registry.npmjs.org"
 
       - name: Download artifact
