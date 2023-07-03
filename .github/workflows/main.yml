@@ -36,16 +36,18 @@ jobs:
           path: |
             dist
             package.json
+      
+      - name: Test publish
+        run: yarn publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   release:
     needs: build
     # when merge to main and not a fork
     if: github.repository == 'hivivo/windows-reg' && github.event_name == 'push'
     permissions:
-      # for version bump
       contents: write
-      # # for package release
-      # packages: write
     runs-on: ubuntu-latest
 
     steps:
@@ -68,8 +70,7 @@ jobs:
         with:
           tag-prefix: 'v'
 
-      # TODO: uncomment it when npm is wired
-      # - name: Release
-      #   run: yarn publish
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release
+        run: yarn publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
