@@ -38,7 +38,7 @@ jobs:
             package.json
       
       - name: Test publish
-        run: yarn publish
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -71,6 +71,6 @@ jobs:
           tag-prefix: 'v'
 
       - name: Release
-        run: yarn publish
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
