@@ -8,8 +8,11 @@ export function buildCommand(main: string, args?: string[]) {
 }
 
 export const RegCommand = {
-  query: (key: string, valueKey: string) =>
-    buildCommand('REG', ['QUERY', key, '/v', valueKey]),
+  query: (key: string, valueName: string) =>
+    buildCommand('REG', ['QUERY', key, '/v', valueName]),
+  queryAll: (key: string, recursively: boolean) =>
+    buildCommand('REG', ['QUERY', key, ...(recursively ? ['/s'] : [])]),
+
   delete: (key: string) => buildCommand('REG', ['DELETE', key, '/f']),
   export: (key: string, file: string) =>
     buildCommand('REG', ['EXPORT', key, file]),

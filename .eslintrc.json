@@ -21,7 +21,14 @@
     "sourceType": "module",
     "warnOnUnsupportedTypeScriptVersion": true
   },
-  "ignorePatterns": ["/.cache", "/.git", "/.husky", "/.yarn", "/dist"],
+  "ignorePatterns": [
+    "/.cache",
+    "/.git",
+    "/.husky",
+    "/.yarn",
+    "/dist",
+    "/coverage"
+  ],
   "settings": {
     "import/resolver": {
       "typescript": {
