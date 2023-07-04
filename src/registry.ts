@@ -23,12 +23,10 @@ export enum RegistryValueType {
   UNKNOWN = 'UNKNOWN',
 }
 
-export type RegistryValue = number | string | Buffer | null;
+export type RegistryValue = number | string | Buffer | string[];
 
 export interface RegistryValueResult {
-  hive: RegistryHiveType;
-  key: string;
-  valueKey: string;
+  valueName: string;
   valueType: RegistryValueType;
   value: RegistryValue;
 }
@@ -48,6 +46,8 @@ function parseValue(type: RegistryValueType, value: string): RegistryValue {
     case RegistryValueType.Number32:
     case RegistryValueType.Number64:
       return Number(value);
+    case RegistryValueType.MultipleStrings:
+      return value.split('\\0');
     case RegistryValueType.Binary:
       return Buffer.from(value, 'hex');
     default:
@@ -55,36 +55,85 @@ function parseValue(type: RegistryValueType, value: string): RegistryValue {
   }
 }
 
-export async function query(key: string, valueKey: string) {
-  const { status, output } = await execute(RegCommand.query(key, valueKey));
+function parseKeyLineResult(line: string) {
+  const matches = line.match(ResultKeyMatchPattern) as ResultKeyMatchType;
+  if (matches) {
+    return {
+      key: matches[0],
+      hive: matches[1],
+      path: matches[2],
+    };
+  }
+  return null;
+}
+
+function parseValueLineResult(line: string): RegistryValueResult {
+  const matches = line.match(ResultValueMatchPattern) as ResultValueMatchType;
+  if (matches) {
+    return {
+      valueName: matches[1],
+      valueType: matches[2],
+      value: parseValue(matches[2], matches[3]),
+    };
+  }
+  return null;
+}
+
+function parseOutput(output: string): Record<string, RegistryValueResult[]> {
+  const result = {} as Record<string, RegistryValueResult[]>;
+  const lines = output.split('\r\n');
+  let lastKey = '';
+  lines.forEach((line) => {
+    const keyLine = parseKeyLineResult(line);
+    if (keyLine) {
+      lastKey = keyLine.key;
+      result[lastKey] = [];
+    } else {
+      const valueLine = parseValueLineResult(line);
+      if (valueLine) {
+        result[lastKey].push(valueLine);
+      }
+    }
+  });
+  return result;
+}
+
+/**
+ * Query a specific valueName under the reg key
+ *
+ * @param key the reg key to look for the valueName
+ * @param valueName the value key to look up
+ * @returns {Promise<RegistryValueResult|null>} the query result
+ */
+export async function query(
+  key: string,
+  valueName: string,
+): Promise<RegistryValueResult | null> {
+  const { status, output } = await execute(RegCommand.query(key, valueName));
   if (status !== ExecutionStatus.Success) {
     return null;
   }
 
-  const result: RegistryValueResult = {
-    hive: RegistryHiveType.UNKNOWN,
-    key: '',
-    valueKey: '',
-    valueType: RegistryValueType.UNKNOWN,
-    value: null,
-  };
-  const lines = output.split('\r\n');
-  lines.forEach((l) => {
-    let matches = l.match(ResultKeyMatchPattern);
-    if (matches) {
-      [, result.hive, result.key] = matches as ResultKeyMatchType;
-    } else {
-      matches = l.match(ResultValueMatchPattern);
-      let rawValue = result.value;
-      if (matches) {
-        [, result.valueKey, result.valueType, rawValue] =
-          matches as ResultValueMatchType;
-        result.value = parseValue(result.valueType, rawValue);
-      }
-    }
-  });
-  if (!result.valueKey) {
+  const result = Object.values(parseOutput(output));
+
+  if (!result.length || !result[0].length) {
     return null;
   }
+  return result[0][0];
+}
+
+export async function queryAll(key: string, recursively = false) {
+  const { status, output } = await execute(
+    RegCommand.queryAll(key, recursively),
+  );
+  if (status !== ExecutionStatus.Success) {
+    return null;
+  }
+
+  const result = parseOutput(output);
+  if (Object.keys(result).length === 0) {
+    return null;
+  }
+
   return result;
 }

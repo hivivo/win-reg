@@ -8,7 +8,7 @@ Access Windows registry with REG command line tool
 yarn add windows-reg
 ```
 
-### To Read a Registry Key Value
+### To Read a Single Registry Key Value
 
 ```typescript
 import { query } from 'windows-reg';
@@ -25,11 +25,55 @@ The example output would be
 
 ```javascript
 {
-  hive: 'HKEY_CURRENT_USER',
-  key: '\\Software\\Microsoft\\Windows\\CurrentVersion\\Run',
-  valueKey: 'OneDrive',
+  valueName: 'OneDrive',
   valueType: 'REG_SZ',
   value: '"C:\\Program Files\\Microsoft OneDrive\\OneDrive.exe" /background'
+}
+```
+
+### To Read All Values under a Registry Key Recursively
+
+```typescript
+import { queryAll } from 'windows-reg';
+
+console.log(
+  await queryAll(
+    'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run',
+    true,
+  ),
+);
+```
+
+The example output would be
+
+```javascript
+{
+  'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run': [
+    {
+      valueName: 'OneDrive',
+      valueType: 'REG_SZ',
+      value: '"C:\\Program Files\\Microsoft OneDrive\\OneDrive.exe" /background'
+    },
+    {
+      valueName: 'Docker Desktop',
+      valueType: 'REG_SZ',
+      value: 'C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe -Autostart'
+    },
+    ...
+  ],
+  'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\ExampleSubKey': [
+    {
+      valueName: 'ExampleBinaryValue',
+      valueType: 'REG_BINARY',
+      value: <Buffer ad fa df ad fa df ad fa dc ae fa df ea e2 31 3f 23 23 e2 da fd af>
+    },
+    {
+      valueName: 'ExampleNumberValue',
+      valueType: 'REG_QWORD',
+      value: 1672226
+    },
+    ...
+  ],
 }
 ```
 
