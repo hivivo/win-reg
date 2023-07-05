@@ -1,6 +1,6 @@
 {
   "name": "windows-reg",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Access Windows registry with REG command line tool",
   "type": "module",
   "repository": "https://github.com/hivivo/windows-reg.git",
